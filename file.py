@@ -8,15 +8,18 @@ import time
 PROMPTS = {
     "clothing": {
         "image_prompt": "A high-quality kids clothing product photo with soft pastel background, studio lighting",
-        "text_prompt": "Generate a product title and description for kids clothing item"
+        "description_prompt": "Generate a product description for the kids clothing item shown in the image, do a deep anlysis on the design and product then generate a accurate description, Return product title as plain text (no markdown, no formatting)",
+        "title_prompt": "Generate a product title for the kids clothing item shown in the image, do a deep anylsis on the design before giving the title for website listing, make sure the title is under 6 words and dont return anything else only prodouct title. Return product title as plain text (no markdown, no formatting)"
     },
     "accessories": {
         "image_prompt": "Minimal premium accessory product shot with white background",
-        "text_prompt": "Generate a product title and description for kids accessory"
+        "description_prompt": "Generate a product description for the kids accessory item shown in the image, do a deep anlysis on the design and product then generate a accurate description, Return product title as plain text (no markdown, no formatting)",
+        "title_prompt": "Generate a product title for the kids accessories item shown in the image, do a deep anylsis on the design and give a title for website listing under 6 words. Return product title as plain text (no markdown, no formatting)"
     },
     "footwear": {
         "image_prompt": "Stylish kids footwear product photo with clean background",
-        "text_prompt": "Generate a product title and description for kids footwear"
+        "description_prompt": "Generate a product description for the kids footwear item shown in the image, do a deep anlysis on the design and product then generate a accurate description, Return product title as plain text (no markdown, no formatting)",
+        "title_prompt": "Generate a product title for the kids footwear item shown in the image, do a deep anylsis on the design and give a title for website listing under 6 words. Return product title as plain text (no markdown, no formatting)"
     }
 }
 
@@ -101,7 +104,7 @@ def generate_text(prompt,bucket,key):
 
     # Extract description
     description = result["output"]["message"]["content"][0]["text"]
-    print("Image Description:\n", description)
+    print("Model Final O/P:\n", description)
 
 
     return(description)
@@ -132,15 +135,18 @@ def lambda_handler(event, context):
 
         # Step 3: Generate text content
         print("Calling generate text func..")
-        text_output = generate_text(prompt_data["text_prompt"],bucket,key)
+        description_output = generate_text(prompt_data["description_prompt"],bucket,key)
+        title_output = generate_text(prompt_data["title_prompt"],bucket,key)
 
         # Step 4: Save output metadata
-        output_key = f"processed/{category}/{key.split('/')[-1]}.json"
+        #output_key = f"processed/{category}/{key.split('/')[-1]}.json"
+        output_key = f"processed/{category}/{title_output}.json"
 
         save_to_s3(bucket, output_key, {
             "category": category,
             "original_image": key,
-            "generated_text": text_output
+            "generated_title": title_output,
+            "generated_desc": description_output
         })
 
         return {
