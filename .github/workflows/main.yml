@@ -13,7 +13,7 @@ jobs:
       - name: Creating Deployment Zip
         run: |
           mkdir package 
-          cp file.py package/
+          cp lambda_function.py package/
           cd package
           zip -r ../deployment.zip .
 
