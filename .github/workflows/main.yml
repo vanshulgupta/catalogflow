@@ -27,5 +27,5 @@ jobs:
       - name: Deploy to Lambda
         run: |
           aws lambda update-function-code \
-            --function-name "catalogfow" \
+            --function-name "catalogflow" \
             --zip-file fileb://deployment.zip
