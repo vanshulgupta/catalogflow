@@ -4,22 +4,23 @@ import urllib.parse
 import random
 import base64
 import time
+import os
 
 PROMPTS = {
     "clothing": {
         "image_prompt": "A high-quality kids clothing product photo with soft pastel background, studio lighting",
-        "description_prompt": "Generate a product description for the kids clothing item shown in the image, do a deep anlysis on the design and product then generate a accurate description, Return product title as plain text (no markdown, no formatting)",
-        "title_prompt": "Generate a product title for the kids clothing item shown in the image, do a deep anylsis on the design before giving the title for website listing, make sure the title is under 6 words and dont return anything else only prodouct title. Return product title as plain text (no markdown, no formatting)"
+        "description_prompt": "Generate a product description for the kids clothing item shown in the image I only have three category of kids clothing party wear dresses, co-ord sets & nightsuits, do a deep anlysis on the design and product then generate a accurate description, Return product title as plain text (no markdown, no formatting)",
+        "title_prompt": "Generate a product title for the kids clothing item shown in the image I only have three category of kids clothing party wear dresses, co-ord sets & nightsuits, do a deep anylsis on the design before giving the title for website listing, make sure the title is under 6 words and dont return anything else only prodouct title. Return product title as plain text (no markdown, no formatting)"
     },
     "accessories": {
         "image_prompt": "Minimal premium accessory product shot with white background",
         "description_prompt": "Generate a product description for the kids accessory item shown in the image, do a deep anlysis on the design and product then generate a accurate description, Return product title as plain text (no markdown, no formatting)",
-        "title_prompt": "Generate a product title for the kids accessories item shown in the image, do a deep anylsis on the design and give a title for website listing under 6 words. Return product title as plain text (no markdown, no formatting)"
+        "title_prompt": "Generate a product title for the kids accessories item shown in the image, do a deep anylsis on the design and give a title for website listing make sure the title is under 6 words and dont return anything else only prodouct title. Return product title as plain text (no markdown, no formatting)"
     },
     "footwear": {
         "image_prompt": "Stylish kids footwear product photo with clean background",
         "description_prompt": "Generate a product description for the kids footwear item shown in the image, do a deep anlysis on the design and product then generate a accurate description, Return product title as plain text (no markdown, no formatting)",
-        "title_prompt": "Generate a product title for the kids footwear item shown in the image, do a deep anylsis on the design and give a title for website listing under 6 words. Return product title as plain text (no markdown, no formatting)"
+        "title_prompt": "Generate a product title for the kids footwear item shown in the image, do a deep anylsis on the design and give a title for website listing make sure the title is under 6 words and dont return anything else only prodouct title. Return product title as plain text (no markdown, no formatting)"
     }
 }
 
@@ -33,21 +34,33 @@ def classify_image(bucket, key):
     )
     labels = [label["Name"].lower() for label in response["Labels"]]
     print("Labels detected from Rekog service:",labels)
+    clothing_keywords = ["clothing", "apparel", "shorts", "t-shirt", "dress", "sleeve", "pants", "jeans"]
     if "shoe" in labels or "sandal" in labels or "slipper" in labels:
         return "footwear"
-    elif "clothing" in labels or "apparel" in labels:
+    #elif "clothing" in labels or "apparel" in labels or "shorts" in labels or "t-shirt" in labels or "dress" in labels:
+    elif any(keyword in labels for keyword in clothing_keywords):
         return "clothing"
     else:
         return "accessories"
 
 
-def save_to_s3(bucket, key, data):
+def save_to_s3(bucket, key, bucket_key, original_key, d_key, data):
     s3.put_object(
         Bucket=bucket,
         Key=key,
         Body=json.dumps(data),
         ContentType="application/json"
     )
+    print("bucket key:", bucket_key)
+    print("original key:", original_key)
+    print("d_key:",d_key)
+    print("bucket:", bucket)
+    print("Copy & Deleting original input file..")
+    s3.copy(original_key, bucket, bucket_key)
+    print("File successfully copied!")
+    s3.delete_object(Bucket=bucket, Key=d_key)
+    print("Successfully deleted!")
+
 
 
 def generate_text(prompt,bucket,key):
@@ -140,14 +153,22 @@ def lambda_handler(event, context):
 
         # Step 4: Save output metadata
         #output_key = f"processed/{category}/{key.split('/')[-1]}.json"
-        output_key = f"processed/{category}/{title_output}.json"
+        output_key = f"processed/{category}/{title_output}/{title_output}.json"
+        # d_key = f"input/{key}"
+        base = filename = os.path.basename(key)
+        bucket_key = f"processed/{category}/{title_output}/{base}"
+        original_key = {
+            'Bucket': bucket,
+            'Key': f"{key}"
+            }
 
-        save_to_s3(bucket, output_key, {
+        save_to_s3(bucket, output_key, bucket_key, original_key, key, {
             "category": category,
             "original_image": key,
             "generated_title": title_output,
             "generated_desc": description_output
         })
+        
 
         return {
             "statusCode": 200,
