@@ -5,7 +5,7 @@ import random
 import base64
 import time
 import os
-
+#From github actions
 PROMPTS = {
     "clothing": {
         "image_prompt": "A high-quality kids clothing product photo with soft pastel background, studio lighting",
