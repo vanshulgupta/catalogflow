@@ -73,50 +73,45 @@ def generate_text(prompt,bucket,key):
 
     # Convert to base64
     image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-
-    body = {
-    'inferenceConfig': { 
-        "maxTokens": 500
-    },
-    "messages": [
-        {
-            "role": "user",
-            "content": [
-                # {
-                #     "image": {
-                #     "source": {
-                #         "type": "base64",
-                #         "media_type": "image/jpeg",
-                #         "data": image_base64
-                #     },
-                # },
-                # },
-                {
-                    "text": prompt
-                }
-            ]
-        }
-    ]
-}
+    
 
     # Call Bedrock model (Claude 3 Sonnet example)
     print("Calling bedrock..")
     try:
-        response = client_bedrock.invoke_model(
-            modelId="us.amazon.nova-pro-v1:0",
-            contentType="application/json",
-            accept="application/json",
-            body=json.dumps(body)
-        )
+        response = client_bedrock.converse(
+                modelId="us.amazon.nova-pro-v1:0",
+                messages=[
+                        {
+                        "role": "user",
+                        "content": [
+                                {
+                                "image": {
+                                        "format": "jpeg",
+                                        "source": {
+                                        "bytes": image_bytes
+                                        }
+                                }
+                                },
+                                {
+                                "text": prompt
+                                }
+                        ]
+                        }
+                ],
+                inferenceConfig={
+                        "maxTokens": 200
+                }
+                )
     except Exception as e:
         print("Exception Occurred: ",e)
 
     # Parse response
     print("RESULT:", response)
-    result = json.loads(response["body"].read())
+    # result = json.loads(response["body"].read())
 
     # Extract description
-    description = result["output"]["message"]["content"][0]["text"]
+    # description = result["output"]["message"]["content"][0]["text"]
+    description = response["output"]["message"]["content"][0]["text"]
     print("Model Final O/P:\n", description)
 
 
