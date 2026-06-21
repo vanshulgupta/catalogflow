@@ -5,6 +5,13 @@ import random
 import base64
 import time
 import os
+import google.genai as genai
+from PIL import Image
+from io import BytesIO
+import requests
+
+# model = "amazon"
+model = "google"
 #From github actions
 # PROMPTS = {
 #     "clothing": {
@@ -81,7 +88,7 @@ def save_to_s3(bucket, key, bucket_key, original_key, d_key, data):
 
 
 
-def generate_text(prompt,bucket,key):
+def generate_text_amazon(prompt,bucket,key):
     # Replace with OpenAI / Bedrock later
     print("Inside generate text.")
     client_bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
@@ -106,7 +113,7 @@ def generate_text(prompt,bucket,key):
                                 "image": {
                                         "format": "jpeg",
                                         "source": {
-                                        "bytes": image_bytes
+                                        "bytes": image_base64
                                         }
                                 }
                                 },
@@ -135,6 +142,35 @@ def generate_text(prompt,bucket,key):
 
     return(description)
 
+def generate_text_google(prompt,bucket,key):
+    print("Inside generate text.")
+    
+    response = s3.get_object(Bucket=bucket, Key=key)
+    image_bytes = response["Body"].read()
+
+    # Convert to base64
+    image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+    
+
+    # Call Bedrock model (Claude 3 Sonnet example)
+    print("Calling Google API..")
+    try:
+        client = genai.Client(api_key="AQ.Ab8RN6Ir3HTiEYWLiFOjeHpxHEpV68SqRGPyD3BbYxRIU7CuQw")
+        response = client.models.generate_content(model="gemini-3.5-flash",contents=[prompt, image_base64])
+    except Exception as e:
+        print("Exception Occurred: ",e)
+
+    # Parse response
+    print("RESULT:", response.text)
+
+    # Extract description
+    # description = result["output"]["message"]["content"][0]["text"]
+    # description = response["output"]["message"]["content"][0]["text"]
+    # print("Model Final O/P:\n", description)
+
+
+    # return(description)
+    return(response.text)
 
 def lambda_handler(event, context):
     try:
@@ -161,8 +197,12 @@ def lambda_handler(event, context):
 
         # Step 3: Generate text content
         print("Calling generate text func..")
-        description_output = generate_text(prompt_data["description_prompt"],bucket,key)
-        title_output = generate_text(prompt_data["title_prompt"],bucket,key)
+        if model == "amazon":
+            description_output = generate_text_amazon(prompt_data["description_prompt"],bucket,key)
+            title_output = generate_text_amazon(prompt_data["title_prompt"],bucket,key)
+        else:
+            description_output = generate_text_google(prompt_data["description_prompt"],bucket,key)
+            title_output = generate_text_google(prompt_data["title_prompt"],bucket,key)
 
         # Step 4: Save output metadata
         #output_key = f"processed/{category}/{key.split('/')[-1]}.json"
