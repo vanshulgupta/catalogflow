@@ -5,7 +5,7 @@ import random
 import base64
 import time
 import os
-import google.genai as genai
+from google import genai
 from PIL import Image
 from io import BytesIO
 import requests
