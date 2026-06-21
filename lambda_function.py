@@ -155,7 +155,7 @@ def generate_text_google(prompt,bucket,key):
     # Call Bedrock model (Claude 3 Sonnet example)
     print("Calling Google API..")
     try:
-        text = "AQ.Ab8RN6Ir3HTiEYWLiFOjeHpxHEpV68SqRGPyD3BbYxRIU7CuQw"
+        text = os.environ.get('GCP_key') 
         client = genai.Client(api_key=text)
         response = client.models.generate_content(model="gemini-3.5-flash",contents=[prompt, image_base64])
     except Exception as e:
