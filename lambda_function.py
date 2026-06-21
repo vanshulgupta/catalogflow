@@ -103,7 +103,7 @@ def generate_text(prompt,bucket,key):
     print("Calling bedrock..")
     try:
         response = client_bedrock.invoke_model(
-            modelId="us.amazon.nova-2-lite-v1:0",
+            modelId="us.amazon.nova-pro-v1:0",
             contentType="application/json",
             accept="application/json",
             body=json.dumps(body)
