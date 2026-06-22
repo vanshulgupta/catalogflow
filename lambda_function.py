@@ -114,7 +114,7 @@ def generate_text_amazon(prompt,bucket,key):
                                 "image": {
                                         "format": "jpeg",
                                         "source": {
-                                        "bytes": image_base64
+                                        "bytes": image_bytes
                                         }
                                 }
                                 },
@@ -158,7 +158,7 @@ def generate_text_google(prompt,bucket,key):
     try:
         text = os.environ.get('GCP_KEY') 
         client = genai.Client(api_key=text)
-        response = client.models.generate_content(model="gemini-3.5-flash",contents=[prompt, image_base64])
+        response = client.models.generate_content(model="gemini-3.5-flash",contents=[prompt, image_bytes])
     except Exception as e:
         print("Exception Occurred: ",e)
 
