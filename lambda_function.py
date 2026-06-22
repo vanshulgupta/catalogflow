@@ -11,7 +11,8 @@ from io import BytesIO
 import requests
 
 # model = "amazon"
-model = "google"
+# model = "google"
+model = os.environ.get('MODEL_NAME') 
 #From github actions
 # PROMPTS = {
 #     "clothing": {
