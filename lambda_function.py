@@ -9,6 +9,8 @@ from google import genai
 from PIL import Image
 from io import BytesIO
 import requests
+from openai import OpenAI
+from aws_bedrock_token_generator import provide_token
 
 # model = "amazon"
 # model = "google"
@@ -174,6 +176,53 @@ def generate_text_google(prompt,bucket,key):
     # return(description)
     return(response.text)
 
+def generate_text_openai(prompt,bucket,key):
+    print("Inside generate text.")
+    
+    response = s3.get_object(Bucket=bucket, Key=key)
+    image_bytes = response["Body"].read()
+
+    # Convert to base64
+    image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+    
+
+    # Call Bedrock model (Claude 3 Sonnet example)
+    print("Calling Google API..")
+    try:
+        client = OpenAI(
+            api_key=provide_token(),
+            base_url="https://bedrock-mantle.us-east-1.api.aws/v1",
+            project="default",
+        )
+
+        response = client.chat.completions.create(
+            model="openai.gpt-oss-120b",
+            messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{image_base64}"
+                    }
+                }
+            ]
+        }
+    ],
+        )
+        print(response.choices[0].message.content)
+    except Exception as e:
+        print("Exception Occurred: ",e)
+
+    # Parse response
+    print("RESULT:", response.text)
+
+    
+    # return(description)
+    return(response.choices[0].message.content)
+
 def lambda_handler(event, context):
     try:
         # Get S3 details
@@ -202,9 +251,12 @@ def lambda_handler(event, context):
         if model == "amazon":
             description_output = generate_text_amazon(prompt_data["description_prompt"],bucket,key)
             title_output = generate_text_amazon(prompt_data["title_prompt"],bucket,key)
-        else:
+        elif model == "google":
             description_output = generate_text_google(prompt_data["description_prompt"],bucket,key)
             title_output = generate_text_google(prompt_data["title_prompt"],bucket,key)
+        else:
+            description_output = generate_text_openai(prompt_data["description_prompt"],bucket,key)
+            title_output = generate_text_openai(prompt_data["title_prompt"],bucket,key)
 
         # Step 4: Save output metadata
         #output_key = f"processed/{category}/{key.split('/')[-1]}.json"
