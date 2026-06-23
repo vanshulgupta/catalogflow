@@ -187,7 +187,7 @@ def generate_text_openai(prompt,bucket,key):
     
 
     # Call Bedrock model (Claude 3 Sonnet example)
-    print("Calling Google API..")
+    print("Calling OpenAI API..")
     try:
         client = OpenAI(
             api_key=provide_token(),
@@ -212,7 +212,7 @@ def generate_text_openai(prompt,bucket,key):
         }
     ],
         )
-        print(response.choices[0].message.content)
+        print(response)
     except Exception as e:
         print("Exception Occurred: ",e)
 
