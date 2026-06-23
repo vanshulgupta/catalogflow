@@ -189,14 +189,11 @@ def generate_text_openai(prompt,bucket,key):
     # Call Bedrock model (Claude 3 Sonnet example)
     print("Calling OpenAI API..")
     try:
-        client = OpenAI(
-            api_key=provide_token(),
-            base_url="https://bedrock-mantle.us-east-1.api.aws/v1",
-            project="default",
-        )
+        api_key = os.environ,get('OpenAI_KEY')
+        client = OpenAI(api_key=api_key)
 
         response = client.chat.completions.create(
-            model="openai.gpt-oss-120b",
+            model="gpt-5.4-mini",
             messages=[
         {
             "role": "user",
