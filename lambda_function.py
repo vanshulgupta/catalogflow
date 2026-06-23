@@ -189,7 +189,7 @@ def generate_text_openai(prompt,bucket,key):
     # Call Bedrock model (Claude 3 Sonnet example)
     print("Calling OpenAI API..")
     try:
-        api_key = os.environ,get('OpenAI_KEY')
+        api_key = os.environ.get('OpenAI_KEY')
         client = OpenAI(api_key=api_key)
 
         response = client.chat.completions.create(
