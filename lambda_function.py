@@ -11,6 +11,7 @@ from io import BytesIO
 import requests
 from openai import OpenAI
 from aws_bedrock_token_generator import provide_token
+import httpx
 
 # model = "amazon"
 # model = "google"
@@ -184,17 +185,22 @@ def generate_text_openai(prompt,bucket,key):
 
     # Convert to base64
     image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-    
+    http_client = httpx.Client(http2=False,timeout=20.0,)
 
     # Call Bedrock model (Claude 3 Sonnet example)
     print("Calling OpenAI API..")
     try:
         api_key = os.environ.get('OpenAI_KEY')
-        client = OpenAI(api_key=api_key)
+        # client = OpenAI(api_key=api_key)
+        client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.openai.com/v1",
+        http_client=http_client)
+
         print("OPENAI Status:",requests.get("https://api.openai.com").status_code)
         print("BASE URL OPENAI:", client.base_url)
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5.4-mini",
             messages=[
         {
             "role": "user",
