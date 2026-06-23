@@ -193,7 +193,7 @@ def generate_text_openai(prompt,bucket,key):
         client = OpenAI(api_key=api_key)
         print("OPENAI Status:",requests.get("https://api.openai.com").status_code)
         response = client.chat.completions.create(
-            model="gpt-5.4-mini",
+            model="gpt-4o-mini",
             messages=[
         {
             "role": "user",
