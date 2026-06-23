@@ -192,6 +192,7 @@ def generate_text_openai(prompt,bucket,key):
         api_key = os.environ.get('OpenAI_KEY')
         client = OpenAI(api_key=api_key)
         print("OPENAI Status:",requests.get("https://api.openai.com").status_code)
+        print("BASE URL OPENAI:", client.base_url)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
